@@ -190,3 +190,16 @@ Le développement démarre seulement **après l'approbation du design** (étape 
 - Thème clair.
 - Tuiles « commande » (scripts PowerShell, commandes personnalisées).
 - Statistiques d'usage (tri par fréquence).
+
+---
+
+## 7. Avancement (2026-11-22)
+
+Les étapes 1 à 10 sont réalisées, chacune sur sa branche `feature/NN-…` fusionnée dans `develop`. Rien n'est encore poussé sur GitHub : les tests manuels ([docs/tests-manuels.md](docs/tests-manuels.md)) viennent d'abord.
+
+Écarts et points ouverts :
+
+- **Glisser une URL depuis le navigateur** : non vérifié (le glisser-déposer de Tauri ne fournit que des chemins de fichiers). Ctrl+V en mode édition couvre le besoin.
+- **Raccourci par défaut `Ctrl+Alt+Espace`** : déjà pris par une autre application sur le poste de développement. UniLaunch affiche alors un avertissement ; le raccourci se change dans les paramètres.
+- **Extraction des icônes** : faite sur un seul fil dédié (STA). En parallèle sur les fils partagés, certaines extractions échouaient au hasard.
+- **Version** : `0.1.0` dans `tauri.conf.json` et `Cargo.toml`, à passer à `1.0.0` une fois les tests manuels validés.
