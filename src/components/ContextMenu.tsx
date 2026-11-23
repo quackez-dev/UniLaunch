@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { SectionKind, Tile } from "../lib/types";
 import { launchErrorText, t as tr, useStore, useT } from "../store";
 import type { MessageKey } from "../i18n";
+import { deleteTile, useEditStore } from "../editing";
 import "./ContextMenu.css";
 
 type Item =
@@ -133,6 +134,13 @@ function buildItems(section: SectionKind, tile: Tile, editing: boolean): Item[] 
   if (section === "websites") {
     items.push({ kind: "item", label: "menu.copyUrl", run: copy });
   }
-  void editing; // Les actions « Modifier » et « Supprimer » arrivent avec le mode édition.
+  // Modifier et supprimer : seulement en mode édition.
+  if (editing) {
+    items.push(
+      { kind: "separator" },
+      { kind: "item", label: "menu.edit", run: () => useEditStore.getState().openDialog({ section, tile }) },
+      { kind: "item", label: "menu.delete", shortcut: "menu.deleteKey", danger: true, run: () => deleteTile(section, tile) },
+    );
+  }
   return items;
 }
