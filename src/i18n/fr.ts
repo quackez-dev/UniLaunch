@@ -136,6 +136,14 @@ export const fr = {
   "toast.editToAdd": "Passez en mode édition pour ajouter des tuiles",
   "toast.unsupported": "Type non pris en charge : {name}",
   "toast.duplicate": "« {name} » est déjà dans UniLaunch",
+
+  "search.label": "Rechercher",
+  "search.placeholder": "Tapez pour chercher…",
+  "search.clear": "Effacer la recherche",
+  "search.noResult": "Aucun résultat",
+  "status.searchNone": "Aucun résultat · Échap efface",
+  "status.searchOne": "1 résultat · Entrée pour lancer · Échap efface",
+  "status.searchMany": "{count} résultats · ↑ ↓ pour choisir · Entrée lance · Échap efface",
 } as const;
 
 export type MessageKey = keyof typeof fr;

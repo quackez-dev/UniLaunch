@@ -1,5 +1,6 @@
 import { createGroup, previewGroups, useEditStore } from "../editing";
-import type { SectionKind } from "../lib/types";
+import type { Group, SectionKind } from "../lib/types";
+import { useSearch, useSearchResults, useSelectedTileId } from "../search";
 import { useStore, useT } from "../store";
 import { GroupView } from "./GroupView";
 import { SectionIcon } from "./SectionIcon";
@@ -18,13 +19,27 @@ export function Column({ kind, flex }: Props) {
   const editing = useStore((s) => s.editing);
   const drag = useEditStore((s) => s.drag);
   const openDialog = useEditStore((s) => s.openDialog);
+  const query = useSearch((s) => s.query);
+  const results = useSearchResults();
+  const selectedId = useSelectedTileId();
 
   if (!config) return null;
   const saved = config.sections[kind].groups;
   const groups = previewGroups(config, kind, drag);
   const count = saved.reduce((n, g) => n + g.tiles.length, 0);
-  // Hors du mode édition, un groupe vide n'a rien à lancer : on le masque.
-  const visible = editing ? groups : groups.filter((g) => g.tiles.length > 0);
+  const searching = query.trim() !== "";
+
+  let visible: Group[];
+  if (searching) {
+    // Recherche : seulement les tuiles trouvées, groupes repliés compris.
+    const found = new Set(results.filter((r) => r.section === kind).map((r) => r.tile.id));
+    visible = groups
+      .map((g) => ({ ...g, collapsed: false, tiles: g.tiles.filter((x) => found.has(x.id)) }))
+      .filter((g) => g.tiles.length > 0);
+  } else {
+    // Hors du mode édition, un groupe vide n'a rien à lancer : on le masque.
+    visible = editing ? groups : groups.filter((g) => g.tiles.length > 0);
+  }
 
   return (
     <section className="column" style={{ flex: `${flex} 1 0px` }} aria-label={t(`section.${kind}`)} data-section={kind}>
@@ -65,7 +80,8 @@ export function Column({ kind, flex }: Props) {
         )}
       </header>
       <div className="column__body">
-        {visible.length === 0 && !editing && (
+        {searching && visible.length === 0 && <p className="column__empty">{t("search.noResult")}</p>}
+        {!searching && visible.length === 0 && !editing && (
           <p className="column__empty">
             {t(`section.empty.${kind}`)}
             <br />
@@ -73,9 +89,15 @@ export function Column({ kind, flex }: Props) {
           </p>
         )}
         {visible.map((group) => (
-          <GroupView key={group.id} section={kind} group={group} index={saved.findIndex((g) => g.id === group.id)} />
+          <GroupView
+            key={group.id}
+            section={kind}
+            group={group}
+            index={saved.findIndex((g) => g.id === group.id)}
+            selectedId={selectedId}
+          />
         ))}
-        {editing && (
+        {editing && !searching && (
           <button type="button" className="column__new-group" onClick={() => createGroup(kind)}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
               <path d="M12 5v14M5 12h14" />

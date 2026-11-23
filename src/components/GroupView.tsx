@@ -13,10 +13,12 @@ type Props = {
   group: Group;
   /** Position du groupe enregistrée dans sa section (couleur des dossiers). */
   index: number;
+  /** Tuile mise en évidence par la recherche (Entrée la lance). */
+  selectedId?: string;
 };
 
 /** Un groupe : en-tête repliable puis la grille de tuiles. */
-export function GroupView({ section, group, index }: Props) {
+export function GroupView({ section, group, index, selectedId }: Props) {
   const t = useT();
   const update = useStore((s) => s.update);
   const settings = useStore((s) => s.config!.settings);
@@ -167,6 +169,7 @@ export function GroupView({ section, group, index }: Props) {
               metrics={metrics}
               folder={colors}
               missing={missing.has(tile.id)}
+              selected={tile.id === selectedId}
             />
           ))}
           {editing && (
