@@ -1,6 +1,6 @@
 //! Dimensionnement de la fenêtre principale : une fraction de l'écran actif, centrée.
 
-use tauri::{PhysicalPosition, PhysicalSize, WebviewWindow};
+use tauri::{Monitor, PhysicalPosition, PhysicalSize, Runtime, WebviewWindow};
 
 /// Taille minimale de la fenêtre, en pixels logiques.
 pub const MIN_WIDTH: f64 = 720.0;
@@ -48,15 +48,23 @@ pub fn centered_rect(area: Rect, scale: f64, dpi: f64) -> Rect {
 }
 
 /// Place la fenêtre au centre de l'écran où elle se trouve (ou de l'écran principal).
-pub fn fit_to_monitor(window: &WebviewWindow, scale: f64) -> tauri::Result<()> {
+pub fn fit_to_monitor<R: Runtime>(window: &WebviewWindow<R>, scale: f64) -> tauri::Result<()> {
     let monitor = match window.current_monitor()? {
         Some(m) => Some(m),
         None => window.primary_monitor()?,
     };
-    let Some(monitor) = monitor else {
-        return Ok(());
-    };
+    match monitor {
+        Some(monitor) => fit_to(window, &monitor, scale),
+        None => Ok(()),
+    }
+}
 
+/// Place la fenêtre au centre d'un écran donné.
+pub fn fit_to<R: Runtime>(
+    window: &WebviewWindow<R>,
+    monitor: &Monitor,
+    scale: f64,
+) -> tauri::Result<()> {
     let work = monitor.work_area();
     let area = Rect {
         x: work.position.x,

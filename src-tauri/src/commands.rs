@@ -2,10 +2,12 @@
 
 use crate::config::{self, Config, SectionKind, Tile};
 use crate::icons;
+use crate::integration;
 use crate::launcher::{self, LaunchError};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use tauri::State;
+use std::sync::atomic::{AtomicBool, Ordering};
+use tauri::{AppHandle, State};
 
 /// État partagé du backend.
 pub struct AppState {
@@ -17,6 +19,8 @@ pub struct AppState {
     pub icon_cache_dir: PathBuf,
     /// Icônes choisies par l'utilisateur (`%APPDATA%\UniLaunch\icons`), à garder.
     pub custom_icon_dir: PathBuf,
+    /// Mode édition actif dans l'interface (la fenêtre ne se cache pas sur perte de focus).
+    pub editing: AtomicBool,
 }
 
 impl AppState {
@@ -31,6 +35,7 @@ impl AppState {
             startup_warning: Mutex::new(loaded.warning),
             icon_cache_dir,
             custom_icon_dir,
+            editing: AtomicBool::new(false),
         }
     }
 }
@@ -40,11 +45,42 @@ pub fn get_config(state: State<'_, AppState>) -> Config {
     state.config.lock().expect("config lock").clone()
 }
 
+/// Enregistre la configuration et applique ce qui touche Windows (raccourci, mode, démarrage).
+/// Renvoie les avertissements (raccourci déjà pris…) ; l'enregistrement, lui, a réussi.
 #[tauri::command]
-pub fn save_config(state: State<'_, AppState>, config: Config) -> Result<(), String> {
+pub fn save_config(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    config: Config,
+) -> Result<Vec<String>, String> {
     config::save(&state.config_path, &config).map_err(|e| e.to_string())?;
-    *state.config.lock().expect("config lock") = config;
-    Ok(())
+    let old = {
+        let mut current = state.config.lock().expect("config lock");
+        std::mem::replace(&mut *current, config.clone()).settings
+    };
+    Ok(integration::apply_settings(
+        &app,
+        Some(&old),
+        &config.settings,
+    ))
+}
+
+/// L'interface signale le mode édition (pas de masquage sur perte de focus pendant l'édition).
+#[tauri::command]
+pub fn set_editing(state: State<'_, AppState>, editing: bool) {
+    state.editing.store(editing, Ordering::Relaxed);
+}
+
+/// Après un lancement réussi : cache ou réduit la fenêtre selon les réglages.
+#[tauri::command]
+pub fn after_launch(app: AppHandle) {
+    integration::after_launch(&app);
+}
+
+/// Cache la fenêtre (Échap en mode barre système).
+#[tauri::command]
+pub fn hide_window(app: AppHandle) {
+    integration::hide_main(&app);
 }
 
 #[tauri::command]
