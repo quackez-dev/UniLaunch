@@ -1,4 +1,4 @@
-import type { KeyboardEvent, MouseEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
 import { commitDrag, deleteTile, useEditStore } from "../editing";
 import { boxOf, tileInsertIndex } from "../lib/dragTarget";
 import type { TileMetrics } from "../lib/layout";
@@ -39,6 +39,12 @@ export function TileButton({ section, tile, metrics, folder, missing, selected =
   const editing = useStore((s) => s.editing);
   const menuOpen = useStore((s) => s.menu?.tileId === tile.id);
   const dragging = useEditStore((s) => s.drag?.kind === "tile" && s.drag.id === tile.id);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Le résultat choisi au clavier reste visible dans sa colonne.
+  useEffect(() => {
+    if (selected) wrapRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [selected]);
 
   const drag = usePointerDrag(editing, {
     onStart: (x, y) => useEditStore.getState().setDrag({ kind: "tile", section, id: tile.id, tile, x, y, target: null }),
@@ -89,7 +95,7 @@ export function TileButton({ section, tile, metrics, folder, missing, selected =
     .join(" ");
 
   return (
-    <div className="tile-wrap" data-tile-id={tile.id}>
+    <div ref={wrapRef} className="tile-wrap" data-tile-id={tile.id}>
       <button
         type="button"
         className={classes}

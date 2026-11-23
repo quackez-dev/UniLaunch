@@ -143,7 +143,7 @@ export const fr = {
   "search.noResult": "Aucun résultat",
   "status.searchNone": "Aucun résultat · Échap efface",
   "status.searchOne": "1 résultat · Entrée pour lancer · Échap efface",
-  "status.searchMany": "{count} résultats · ↑ ↓ pour choisir · Entrée lance · Échap efface",
+  "status.searchMany": "{count} résultats · Flèches pour choisir · Entrée lance · Échap efface",
 
   "settings.open": "Paramètres",
   "settings.title": "Paramètres",

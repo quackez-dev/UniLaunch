@@ -145,7 +145,7 @@ export const en: Record<MessageKey, string> = {
   "search.noResult": "No results",
   "status.searchNone": "No results · Esc clears",
   "status.searchOne": "1 result · Enter to launch · Esc clears",
-  "status.searchMany": "{count} results · ↑ ↓ to choose · Enter launches · Esc clears",
+  "status.searchMany": "{count} results · Arrows to choose · Enter launches · Esc clears",
 
   "settings.open": "Settings",
   "settings.title": "Settings",

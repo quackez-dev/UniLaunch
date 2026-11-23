@@ -10,7 +10,7 @@ type SearchState = {
   selected: number;
   setQuery(query: string): void;
   clear(): void;
-  move(delta: number, count: number): void;
+  select(index: number): void;
 };
 
 export const useSearch = create<SearchState>((set) => ({
@@ -18,8 +18,7 @@ export const useSearch = create<SearchState>((set) => ({
   selected: 0,
   setQuery: (query) => set({ query, selected: 0 }),
   clear: () => set({ query: "", selected: 0 }),
-  move: (delta, count) =>
-    set((s) => ({ selected: count === 0 ? 0 : (s.selected + delta + count) % count })),
+  select: (index) => set({ selected: index }),
 }));
 
 /** Résultats de la recherche courante (vide si aucune recherche). */

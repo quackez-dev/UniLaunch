@@ -42,20 +42,20 @@ fn settings<R: Runtime>(app: &AppHandle<R>) -> Settings {
         .clone()
 }
 
-/// Affiche la fenêtre au centre de l'écran où se trouve la souris, au premier plan.
+/// Affiche la fenêtre au centre de l'écran principal (celui du menu Démarrer), au premier plan,
+/// quel que soit l'écran où se trouvent la souris ou la fenêtre active.
 pub fn show_main<R: Runtime>(app: &AppHandle<R>) {
     let Some(win) = main_window(app) else {
         return;
     };
     let scale = settings(app).window_scale;
-    let monitor = app
-        .cursor_position()
-        .ok()
-        .and_then(|p| app.monitor_from_point(p.x, p.y).ok().flatten());
-    if let Some(monitor) = monitor {
-        let _ = window::fit_to(&win, &monitor, scale);
-    } else {
-        let _ = window::fit_to_monitor(&win, scale);
+    match app.primary_monitor() {
+        Ok(Some(monitor)) => {
+            let _ = window::fit_to(&win, &monitor, scale);
+        }
+        _ => {
+            let _ = window::fit_to_monitor(&win, scale);
+        }
     }
     let _ = win.unminimize();
     let _ = win.show();
