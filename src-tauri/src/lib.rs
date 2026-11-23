@@ -15,6 +15,7 @@ const CONFIG_FILE: &str = "config.json";
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // `UNILAUNCH_DATA_DIR` (développement et tests) : tout est rangé dans ce dossier,

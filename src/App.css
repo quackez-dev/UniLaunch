@@ -13,3 +13,9 @@
   justify-content: center;
   color: var(--ul-text-muted);
 }
+
+/* Pendant un glisser : curseur « saisie » partout, pas de sélection de texte. */
+.app--dragging,
+.app--dragging * {
+  cursor: grabbing !important;
+}

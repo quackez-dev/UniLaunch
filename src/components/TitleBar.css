@@ -71,3 +71,32 @@
   margin: 0 4px;
   background: var(--ul-line-strong);
 }
+
+.edit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--ul-line-strong);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ul-text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.edit-toggle:hover {
+  background: var(--ul-surface-active);
+}
+
+.edit-toggle--on,
+.edit-toggle--on:hover {
+  border-color: var(--ul-accent);
+  background: var(--ul-accent);
+  color: var(--ul-on-accent);
+}
+
+.titlebar--editing {
+  border-bottom-color: var(--ul-accent-line);
+}

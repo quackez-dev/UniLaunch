@@ -1,0 +1,31 @@
+.drag-ghost {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+  padding: 6px 10px 6px 6px;
+  background: var(--ul-surface-active);
+  border: 1px solid var(--ul-line-hover);
+  border-radius: 8px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5);
+  color: var(--ul-text);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: rotate(-2deg);
+}
+
+.drag-ghost span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drag-ghost__group {
+  padding-left: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 11px;
+}

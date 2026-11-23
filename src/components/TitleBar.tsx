@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useT } from "../store";
+import { useStore, useT } from "../store";
 import { Logo } from "./Logo";
 import "./TitleBar.css";
 
 /** Barre de titre personnalisée (la fenêtre n'a pas de cadre Windows). */
 export function TitleBar({ center, actions }: { center?: ReactNode; actions?: ReactNode }) {
   const t = useT();
+  const editing = useStore((s) => s.editing);
   const appWindow = getCurrentWindow();
 
   return (
-    <header className="titlebar" data-tauri-drag-region>
+    <header className={`titlebar${editing ? " titlebar--editing" : ""}`} data-tauri-drag-region>
       <div className="titlebar__brand" data-tauri-drag-region>
         <Logo />
         <span className="titlebar__name" data-tauri-drag-region>

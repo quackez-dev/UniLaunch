@@ -1,5 +1,9 @@
 import { useEffect } from "react";
 import { Columns } from "./components/Columns";
+import { DragGhost } from "./components/DragGhost";
+import { EditToggle } from "./components/EditToggle";
+import { TileDialog } from "./components/TileDialog";
+import { useEditStore } from "./editing";
 import { ContextMenu } from "./components/ContextMenu";
 import { StatusBar } from "./components/StatusBar";
 import { TitleBar } from "./components/TitleBar";
@@ -14,6 +18,9 @@ function App() {
   const init = useStore((s) => s.init);
   const accent = config?.settings.accentColor;
   const lang = config?.settings.language ?? "fr";
+  const editing = useStore((s) => s.editing);
+  const dialog = useEditStore((s) => s.dialog);
+  const drag = useEditStore((s) => s.drag);
 
   useEffect(() => {
     void init();
@@ -41,11 +48,13 @@ function App() {
   }, []);
 
   return (
-    <div className="app">
-      <TitleBar />
+    <div className={`app${drag ? " app--dragging" : ""}`}>
+      <TitleBar actions={<EditToggle />} />
       {config ? <Columns /> : <main className="app__loading">{t("status.loading")}</main>}
-      <StatusBar />
+      <StatusBar hint={editing ? t("status.editHint") : undefined} />
       <ContextMenu />
+      {dialog && config && <TileDialog key={dialog.tile?.id ?? "new"} state={dialog} />}
+      <DragGhost />
       <ToastView />
     </div>
   );

@@ -1,3 +1,4 @@
+import { createGroup, previewGroups, useEditStore } from "../editing";
 import type { SectionKind } from "../lib/types";
 import { useStore, useT } from "../store";
 import { GroupView } from "./GroupView";
@@ -13,22 +14,42 @@ type Props = {
 /** Une colonne : en-tête (type et nombre de tuiles) puis ses groupes. */
 export function Column({ kind, flex }: Props) {
   const t = useT();
-  const groups = useStore((s) => s.config?.sections[kind].groups ?? []);
+  const config = useStore((s) => s.config);
   const editing = useStore((s) => s.editing);
+  const drag = useEditStore((s) => s.drag);
+  const openDialog = useEditStore((s) => s.openDialog);
 
-  const count = groups.reduce((n, g) => n + g.tiles.length, 0);
+  if (!config) return null;
+  const saved = config.sections[kind].groups;
+  const groups = previewGroups(config, kind, drag);
+  const count = saved.reduce((n, g) => n + g.tiles.length, 0);
   // Hors du mode édition, un groupe vide n'a rien à lancer : on le masque.
   const visible = editing ? groups : groups.filter((g) => g.tiles.length > 0);
 
   return (
-    <section className="column" style={{ flex: `${flex} 1 0px` }} aria-label={t(`section.${kind}`)}>
+    <section className="column" style={{ flex: `${flex} 1 0px` }} aria-label={t(`section.${kind}`)} data-section={kind}>
       <header className="column__header">
         <SectionIcon kind={kind} />
         <h2 className="column__title">{t(`section.${kind}`)}</h2>
         <span className="column__count">{count}</span>
+        <span className="column__spacer" />
+        {editing && (
+          <button
+            type="button"
+            className="column__add"
+            aria-label={t(`column.add.${kind}`)}
+            title={t(`column.add.${kind}`)}
+            onClick={() => openDialog({ section: kind })}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            {t("column.add")}
+          </button>
+        )}
       </header>
       <div className="column__body">
-        {visible.length === 0 && (
+        {visible.length === 0 && !editing && (
           <p className="column__empty">
             {t(`section.empty.${kind}`)}
             <br />
@@ -36,8 +57,16 @@ export function Column({ kind, flex }: Props) {
           </p>
         )}
         {visible.map((group) => (
-          <GroupView key={group.id} section={kind} group={group} index={groups.indexOf(group)} />
+          <GroupView key={group.id} section={kind} group={group} index={saved.findIndex((g) => g.id === group.id)} />
         ))}
+        {editing && (
+          <button type="button" className="column__new-group" onClick={() => createGroup(kind)}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            {t("group.new")}
+          </button>
+        )}
       </div>
     </section>
   );
