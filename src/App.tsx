@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AppsPicker } from "./components/AppsPicker";
 import { Columns } from "./components/Columns";
 import { ContextMenu } from "./components/ContextMenu";
@@ -74,6 +75,51 @@ function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Raccourcis du navigateur intégré sans objet dans une app : recharger, imprimer,
+  // chercher dans la page… Ctrl+F donne plutôt le focus à la recherche d'UniLaunch.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && key === "f") {
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>(".search__input")?.focus();
+        return;
+      }
+      const blocked =
+        e.key === "F5" ||
+        e.key === "F7" ||
+        (ctrl && ["r", "p", "g", "j", "u", "s", "o", "n"].includes(key)) ||
+        (ctrl && e.shiftKey && ["i", "c"].includes(key) && !import.meta.env.DEV);
+      if (blocked) e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
+
+  // Fenêtre cachée (perte de focus en mode barre système) : on repart d'un état propre.
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let disposed = false;
+    void getCurrentWindow()
+      .onFocusChanged(({ payload: focused }) => {
+        if (focused) return;
+        const s = useStore.getState().config?.settings;
+        if (s?.windowMode === "tray" && s.hideOnBlur && !useStore.getState().editing) {
+          useSearch.getState().clear();
+          useStore.getState().closeMenu();
+        }
+      })
+      .then((fn) => {
+        if (disposed) fn();
+        else unlisten = fn;
+      });
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
   }, []);
 
   let hint: string | undefined;
