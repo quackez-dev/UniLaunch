@@ -116,6 +116,26 @@ export const fr = {
   "dialog.error.group": "Choisissez un groupe.",
   "dialog.filter.apps": "Applications et raccourcis",
   "dialog.filter.images": "Images",
+
+  "column.installed": "Installées",
+  "column.installedTitle": "Ajouter depuis les applications installées",
+  "picker.title": "Applications installées",
+  "picker.subtitle": "Menu Démarrer et Microsoft Store. Cochez les apps à ajouter.",
+  "picker.filter": "Filtrer les applications",
+  "picker.loading": "Recherche des applications…",
+  "picker.empty": "Aucune application ne correspond.",
+  "picker.error": "Impossible de lister les applications : {error}",
+  "picker.desktop": "Bureau",
+  "picker.store": "Microsoft Store",
+  "picker.added": "Déjà ajoutée",
+  "picker.addTo": "Ajouter dans",
+  "picker.add": "Ajouter",
+  "picker.addOne": "Ajouter 1 application",
+  "picker.addMany": "Ajouter {count} applications",
+  "toast.tilesAdded": "{count} tuiles ajoutées",
+  "toast.editToAdd": "Passez en mode édition pour ajouter des tuiles",
+  "toast.unsupported": "Type non pris en charge : {name}",
+  "toast.duplicate": "« {name} » est déjà dans UniLaunch",
 } as const;
 
 export type MessageKey = keyof typeof fr;

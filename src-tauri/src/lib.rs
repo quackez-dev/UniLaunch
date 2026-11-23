@@ -3,6 +3,7 @@ mod config;
 mod favicon;
 mod icons;
 mod launcher;
+mod quickadd;
 mod window;
 
 use commands::AppState;
@@ -55,6 +56,8 @@ pub fn run() {
             commands::tile_icon,
             commands::import_custom_icon,
             commands::missing_tiles,
+            commands::classify_paths,
+            commands::installed_apps,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -24,6 +24,7 @@ export function GroupView({ section, group, index }: Props) {
   const editing = useStore((s) => s.editing);
   const renaming = useEditStore((s) => s.renaming === group.id);
   const dragging = useEditStore((s) => s.drag?.kind === "group" && s.drag.id === group.id);
+  const fileOver = useEditStore((s) => s.fileOver === group.id);
   const openDialog = useEditStore((s) => s.openDialog);
 
   const metrics = TILE_SIZES[settings.tileSize] ?? TILE_SIZES.M;
@@ -58,7 +59,7 @@ export function GroupView({ section, group, index }: Props) {
 
   return (
     <div
-      className={`group${dragging ? " group--dragging" : ""}`}
+      className={`group${dragging ? " group--dragging" : ""}${fileOver ? " group--file-over" : ""}`}
       data-group-row={group.id}
       data-drop-group={group.id}
       data-section={section}

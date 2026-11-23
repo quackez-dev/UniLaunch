@@ -1,0 +1,101 @@
+.picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 200px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 0 -8px;
+}
+
+.picker__message {
+  margin: 24px 0;
+  text-align: center;
+  color: var(--ul-text-muted);
+  font-size: 12px;
+}
+
+.picker__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--ul-radius-md);
+  cursor: pointer;
+}
+
+.picker__row:hover {
+  background: var(--ul-surface-2);
+}
+
+.picker__row--on {
+  background: #1b1e25;
+}
+
+.picker__row--added {
+  cursor: default;
+}
+
+.picker__row--added .picker__icon,
+.picker__row--added .picker__name {
+  opacity: 0.55;
+}
+
+.picker__row input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex: 0 0 auto;
+  accent-color: var(--ul-accent);
+}
+
+.picker__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.picker__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker__name {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.picker__detail {
+  font-size: 11px;
+  color: var(--ul-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.picker__badge {
+  flex: 0 0 auto;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #22252d;
+  color: var(--ul-text-3);
+  white-space: nowrap;
+}
+
+.picker__badge--store {
+  background: var(--ul-accent-soft);
+  color: var(--ul-accent-text);
+}
+
+.picker__group {
+  width: auto;
+  height: 32px;
+}
+
+.picker__spacer {
+  flex: 1 1 0;
+}

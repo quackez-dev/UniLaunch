@@ -13,6 +13,7 @@ import {
   updateTile,
 } from "./lib/edit";
 import { forgetTileIcon } from "./lib/icons";
+import { quickAdd, type Dropped, type QuickAddResult } from "./lib/quickadd";
 import type { Config, Group, SectionKind, Tile } from "./lib/types";
 import { t, useStore } from "./store";
 
@@ -48,6 +49,10 @@ type EditState = {
   dialog: TileDialogState | null;
   renaming: string | null;
   drag: DragState | null;
+  /** Groupe survolé par des fichiers venant de l'Explorateur. */
+  fileOver: string | null;
+  /** Liste des applications installées ouverte. */
+  picker: boolean;
   openDialog(dialog: TileDialogState): void;
   closeDialog(): void;
   setRenaming(groupId: string | null): void;
@@ -58,6 +63,8 @@ export const useEditStore = create<EditState>((set) => ({
   dialog: null,
   renaming: null,
   drag: null,
+  fileOver: null,
+  picker: false,
   openDialog: (dialog) => {
     useStore.getState().closeMenu();
     set({ dialog });
@@ -70,7 +77,35 @@ export const useEditStore = create<EditState>((set) => ({
 /** Quitte le mode édition et referme ce qui en dépend. */
 export function setEditing(editing: boolean) {
   useStore.getState().setEditing(editing);
-  if (!editing) useEditStore.setState({ dialog: null, renaming: null, drag: null });
+  if (!editing) useEditStore.setState({ dialog: null, renaming: null, drag: null, fileOver: null, picker: false });
+}
+
+/** Ajoute des éléments reconnus (fichiers déposés, texte collé, apps installées) et l'annonce. */
+export function applyQuickAdd(items: Dropped[], preferred: { section: SectionKind; groupId: string } | null) {
+  const store = useStore.getState();
+  let result: QuickAddResult = { added: [], duplicates: [], unsupported: [] };
+  store.update((c) => {
+    result = quickAdd(c, items, preferred, t("group.newName"));
+  });
+
+  const { added, duplicates, unsupported } = result;
+  if (added.length === 1) {
+    store.showToast(t("toast.tileAdded", { name: added[0].tile.name, group: added[0].groupName }));
+  } else if (added.length > 1) {
+    store.showToast(t("toast.tilesAdded", { count: added.length }));
+  } else if (duplicates.length > 0) {
+    store.showToast(t("toast.duplicate", { name: duplicates[0] }));
+  } else if (unsupported.length > 0) {
+    store.showToast(t("toast.unsupported", { name: unsupported[0] }), { tone: "error" });
+  }
+}
+
+/** Groupe sous un point de la fenêtre, s'il y en a un. */
+export function groupAt(x: number, y: number): { section: SectionKind; groupId: string } | null {
+  const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-drop-group]");
+  const section = el?.dataset.section as SectionKind | undefined;
+  const groupId = el?.dataset.dropGroup;
+  return section && groupId ? { section, groupId } : null;
 }
 
 export function deleteTile(section: SectionKind, tile: Tile) {
