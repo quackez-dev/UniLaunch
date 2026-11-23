@@ -190,3 +190,138 @@ pub async fn installed_apps() -> Result<Vec<crate::quickadd::InstalledApp>, Stri
         .await
         .map_err(|e| e.to_string())?
 }
+
+/// Exporte la configuration (icônes personnalisées comprises) dans un fichier JSON.
+#[tauri::command]
+pub fn export_config(state: State<'_, AppState>, path: String) -> Result<(), String> {
+    let config = state.config.lock().expect("config lock").clone();
+    let text = crate::transfer::build_export(&config)?;
+    std::fs::write(&path, text).map_err(|e| e.to_string())
+}
+
+/// Lit un export ; renvoie la configuration à appliquer (l'interface l'enregistre,
+/// ce qui permet d'annuler).
+#[tauri::command]
+pub fn import_config(state: State<'_, AppState>, path: String) -> Result<Config, String> {
+    let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    crate::transfer::read_import(&text, &state.custom_icon_dir)
+}
+
+/// Versions utiles pour signaler un problème.
+#[derive(serde::Serialize)]
+pub struct VersionInfo {
+    app: String,
+    windows: String,
+    webview: String,
+}
+
+#[tauri::command]
+pub fn version_info(app: AppHandle) -> VersionInfo {
+    VersionInfo {
+        app: app.package_info().version.to_string(),
+        windows: windows_version(),
+        webview: tauri::webview_version().unwrap_or_else(|_| "?".into()),
+    }
+}
+
+/// Ex. « Windows 11 24H2 (build 26100.2605) », lu dans le registre.
+#[cfg(windows)]
+fn windows_version() -> String {
+    use windows::Win32::System::Registry::{
+        HKEY_LOCAL_MACHINE, RRF_RT_REG_DWORD, RRF_RT_REG_SZ, RegGetValueW,
+    };
+    use windows::core::{HSTRING, PCWSTR};
+
+    const KEY: &str = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+    let read_string = |name: &str| -> Option<String> {
+        let mut buf = [0u16; 128];
+        let mut size = (buf.len() * 2) as u32;
+        // SAFETY : tampon local de taille connue, passée dans `size`.
+        unsafe {
+            RegGetValueW(
+                HKEY_LOCAL_MACHINE,
+                PCWSTR(HSTRING::from(KEY).as_ptr()),
+                PCWSTR(HSTRING::from(name).as_ptr()),
+                RRF_RT_REG_SZ,
+                None,
+                Some(buf.as_mut_ptr() as *mut _),
+                Some(&mut size),
+            )
+            .ok()
+            .ok()?;
+        }
+        let len = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+        Some(String::from_utf16_lossy(&buf[..len]))
+    };
+    let read_dword = |name: &str| -> Option<u32> {
+        let mut value = 0u32;
+        let mut size = 4u32;
+        // SAFETY : un DWORD local, taille 4 octets.
+        unsafe {
+            RegGetValueW(
+                HKEY_LOCAL_MACHINE,
+                PCWSTR(HSTRING::from(KEY).as_ptr()),
+                PCWSTR(HSTRING::from(name).as_ptr()),
+                RRF_RT_REG_DWORD,
+                None,
+                Some(&mut value as *mut u32 as *mut _),
+                Some(&mut size),
+            )
+            .ok()
+            .ok()?;
+        }
+        Some(value)
+    };
+
+    let build = read_string("CurrentBuild").unwrap_or_default();
+    let ubr = read_dword("UBR")
+        .map(|u| format!(".{u}"))
+        .unwrap_or_default();
+    // Le registre dit encore « Windows 10 » sur Windows 11 : on se fie au numéro de build.
+    let name = match build.parse::<u32>() {
+        Ok(b) if b >= 22000 => "Windows 11",
+        Ok(_) => "Windows 10",
+        Err(_) => "Windows",
+    };
+    let display = read_string("DisplayVersion")
+        .map(|d| format!(" {d}"))
+        .unwrap_or_default();
+    format!("{name}{display} (build {build}{ubr})")
+}
+
+#[cfg(not(windows))]
+fn windows_version() -> String {
+    std::env::consts::OS.into()
+}
+
+/// Chemin du fichier de configuration (affiché dans les paramètres).
+#[tauri::command]
+pub fn config_location(state: State<'_, AppState>) -> String {
+    state.config_path.to_string_lossy().into_owned()
+}
+
+/// Ouvre l'Explorateur sur le fichier de configuration.
+#[tauri::command]
+pub async fn reveal_config(state: State<'_, AppState>) -> Result<(), LaunchError> {
+    let path = state.config_path.clone();
+    let cmd = if path.exists() {
+        launcher::ShellCommand {
+            verb: "open",
+            file: "explorer.exe".into(),
+            params: format!("/select,\"{}\"", path.display()),
+            dir: None,
+        }
+    } else {
+        let dir = path.parent().map(Path::to_path_buf).unwrap_or_default();
+        std::fs::create_dir_all(&dir).map_err(|e| LaunchError::Failed(e.to_string()))?;
+        launcher::ShellCommand {
+            verb: "open",
+            file: dir.to_string_lossy().into_owned(),
+            params: String::new(),
+            dir: None,
+        }
+    };
+    tauri::async_runtime::spawn_blocking(move || launcher::execute(&cmd))
+        .await
+        .map_err(|e| LaunchError::Failed(e.to_string()))?
+}
