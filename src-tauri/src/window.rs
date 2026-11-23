@@ -6,9 +6,6 @@ use tauri::{PhysicalPosition, PhysicalSize, WebviewWindow};
 pub const MIN_WIDTH: f64 = 720.0;
 pub const MIN_HEIGHT: f64 = 480.0;
 
-/// Proportion de l'écran occupée par défaut (50 %).
-pub const DEFAULT_SCALE: f64 = 0.5;
-
 /// Rectangle en pixels physiques.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Rect {
