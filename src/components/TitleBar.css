@@ -1,0 +1,102 @@
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 6px 6px 6px 14px;
+  border-bottom: 1px solid var(--ul-line);
+  background: var(--ul-bg-chrome);
+  flex: 0 0 auto;
+}
+
+.titlebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.titlebar__name {
+  font-family: var(--ul-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.titlebar__center {
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+.titlebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.titlebar__winbtn {
+  width: 36px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--ul-radius-sm);
+  background: transparent;
+  color: var(--ul-text-3);
+}
+
+.titlebar__winbtn:hover {
+  background: var(--ul-surface-active);
+  color: var(--ul-text);
+}
+
+.titlebar__winbtn--close:hover {
+  background: #c42b1c;
+  color: #ffffff;
+}
+
+.titlebar__center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+
+.titlebar__sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--ul-line-strong);
+}
+
+.edit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--ul-line-strong);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ul-text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.edit-toggle:hover {
+  background: var(--ul-surface-active);
+}
+
+.edit-toggle--on,
+.edit-toggle--on:hover {
+  border-color: var(--ul-accent);
+  background: var(--ul-accent);
+  color: var(--ul-on-accent);
+}
+
+.titlebar--editing {
+  border-bottom-color: var(--ul-accent-line);
+}

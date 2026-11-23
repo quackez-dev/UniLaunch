@@ -1,0 +1,47 @@
+.tile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tile-form__icon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  flex-wrap: wrap;
+}
+
+.tile-form__preview {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--ul-surface-2);
+  border: 1px solid #22252d;
+}
+
+.tile-form__icon-choices {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tile-form__advanced summary {
+  cursor: pointer;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tile-form__advanced-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px 12px;
+}

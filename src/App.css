@@ -1,0 +1,21 @@
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--ul-bg);
+}
+
+.app__loading {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ul-text-muted);
+}
+
+/* Pendant un glisser : curseur « saisie » partout, pas de sélection de texte. */
+.app--dragging,
+.app--dragging * {
+  cursor: grabbing !important;
+}

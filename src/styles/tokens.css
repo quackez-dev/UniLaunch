@@ -1,0 +1,42 @@
+/* Design tokens — issus des maquettes approuvées (thème sombre + accent). */
+:root {
+  /* Surfaces */
+  --ul-bg: #0e0f13;
+  --ul-bg-chrome: #0b0c10;
+  --ul-surface-1: #15171c;
+  --ul-surface-2: #16181d;
+  --ul-surface-3: #1a1d23;
+  --ul-surface-hover: #1d2028;
+  --ul-surface-active: #262a33;
+
+  /* Lignes */
+  --ul-line: #1f2229;
+  --ul-line-soft: #1c1f25;
+  --ul-line-strong: #2a2e37;
+  --ul-line-hover: #3a3f4b;
+
+  /* Texte */
+  --ul-text: #eceef2;
+  --ul-text-2: #c9cdd6;
+  --ul-text-3: #a3a9b6;
+  --ul-text-muted: #8a91a0;
+  --ul-danger: #ff8a94;
+  --ul-warning: #f5b544;
+
+  /* Accent (remplacé à l'exécution selon les paramètres) */
+  --ul-accent: #6d4aff;
+  --ul-on-accent: #ffffff;
+  --ul-accent-text: rgb(170, 150, 255);
+  --ul-accent-soft: rgba(109, 74, 255, 0.14);
+  --ul-accent-line: rgba(109, 74, 255, 0.45);
+
+  /* Typo */
+  --ul-font: "Inter", system-ui, sans-serif;
+  --ul-font-display: "Space Grotesk", "Inter", sans-serif;
+  --ul-font-mono: Consolas, "Cascadia Mono", monospace;
+
+  /* Rayons */
+  --ul-radius-sm: 6px;
+  --ul-radius-md: 8px;
+  --ul-radius-lg: 14px;
+}
