@@ -156,6 +156,13 @@ pub fn apply_settings<R: Runtime>(
     if old.is_none_or(|o| o.window_mode != new.window_mode) {
         apply_window_mode(app, new.window_mode);
     }
+    // Nouvelle taille de fenêtre : appliquée tout de suite (au démarrage, `setup` s'en charge).
+    if let Some(o) = old
+        && (o.window_scale - new.window_scale).abs() > f64::EPSILON
+        && let Some(win) = main_window(app)
+    {
+        let _ = window::fit_to_monitor(&win, new.window_scale);
+    }
     if old.is_none_or(|o| o.start_with_windows != new.start_with_windows)
         && let Err(e) = apply_autostart(app, new.start_with_windows)
     {

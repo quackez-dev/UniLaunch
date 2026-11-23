@@ -5,6 +5,7 @@ mod icons;
 mod integration;
 mod launcher;
 mod quickadd;
+mod transfer;
 mod window;
 
 use commands::AppState;
@@ -88,6 +89,11 @@ pub fn run() {
             commands::set_editing,
             commands::after_launch,
             commands::hide_window,
+            commands::export_config,
+            commands::import_config,
+            commands::version_info,
+            commands::config_location,
+            commands::reveal_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
