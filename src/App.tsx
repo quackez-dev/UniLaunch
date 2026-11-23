@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+import { AppsPicker } from "./components/AppsPicker";
 import { Columns } from "./components/Columns";
+import { useExternalAdd } from "./lib/useExternalAdd";
 import { DragGhost } from "./components/DragGhost";
 import { EditToggle } from "./components/EditToggle";
 import { TileDialog } from "./components/TileDialog";
@@ -20,6 +22,9 @@ function App() {
   const lang = config?.settings.language ?? "fr";
   const editing = useStore((s) => s.editing);
   const dialog = useEditStore((s) => s.dialog);
+  const picker = useEditStore((s) => s.picker);
+
+  useExternalAdd();
   const drag = useEditStore((s) => s.drag);
 
   useEffect(() => {
@@ -54,6 +59,7 @@ function App() {
       <StatusBar hint={editing ? t("status.editHint") : undefined} />
       <ContextMenu />
       {dialog && config && <TileDialog key={dialog.tile?.id ?? "new"} state={dialog} />}
+      {picker && config && <AppsPicker />}
       <DragGhost />
       <ToastView />
     </div>

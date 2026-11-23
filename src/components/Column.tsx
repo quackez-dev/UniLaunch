@@ -33,6 +33,22 @@ export function Column({ kind, flex }: Props) {
         <h2 className="column__title">{t(`section.${kind}`)}</h2>
         <span className="column__count">{count}</span>
         <span className="column__spacer" />
+        {editing && kind === "apps" && (
+          <button
+            type="button"
+            className="column__add column__add--secondary"
+            title={t("column.installedTitle")}
+            onClick={() => useEditStore.setState({ picker: true })}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <rect x="4" y="4" width="7" height="7" rx="1.5" />
+              <rect x="13" y="4" width="7" height="7" rx="1.5" />
+              <rect x="4" y="13" width="7" height="7" rx="1.5" />
+              <path d="M16.5 13v7M13 16.5h7" strokeLinecap="round" />
+            </svg>
+            {t("column.installed")}
+          </button>
+        )}
         {editing && (
           <button
             type="button"

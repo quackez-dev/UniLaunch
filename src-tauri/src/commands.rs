@@ -133,3 +133,24 @@ pub fn missing_tiles(state: State<'_, AppState>) -> Vec<String> {
     }
     missing
 }
+
+/// Analyse des chemins déposés ou collés : colonne, nom et cible de chaque élément.
+#[tauri::command]
+pub fn classify_paths(paths: Vec<String>) -> Vec<crate::quickadd::Dropped> {
+    paths
+        .iter()
+        .map(|p| {
+            crate::quickadd::classify(p, launcher::disk_state, |path| {
+                std::fs::read_to_string(path).ok()
+            })
+        })
+        .collect()
+}
+
+/// Applications du menu Démarrer et du Microsoft Store.
+#[tauri::command]
+pub async fn installed_apps() -> Result<Vec<crate::quickadd::InstalledApp>, String> {
+    tauri::async_runtime::spawn_blocking(crate::quickadd::installed_apps)
+        .await
+        .map_err(|e| e.to_string())?
+}
