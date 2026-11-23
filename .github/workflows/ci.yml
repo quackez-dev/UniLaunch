@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, tests et build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Dépendances npm
+        run: npm ci
+
+      - name: Lint (TypeScript)
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Tests (frontend)
+        run: npm test
+
+      - name: Build (frontend)
+        run: npm run build
+
+      - name: Format (Rust)
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Tests (Rust)
+        working-directory: src-tauri
+        run: cargo test
