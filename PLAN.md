@@ -193,13 +193,15 @@ Le développement démarre seulement **après l'approbation du design** (étape 
 
 ---
 
-## 7. Avancement (2026-11-22)
+## 7. Avancement (2026-11-23)
 
-Les étapes 1 à 10 sont réalisées, chacune sur sa branche `feature/NN-…` fusionnée dans `develop`. Rien n'est encore poussé sur GitHub : les tests manuels ([docs/tests-manuels.md](docs/tests-manuels.md)) viennent d'abord.
+Les étapes 1 à 10 sont réalisées, chacune sur sa branche `feature/NN-…` fusionnée dans `develop`. Ensuite, `feature/11-ecran-principal-fleches` : la fenêtre s'ouvre toujours sur l'écran principal, et la recherche se parcourt avec les quatre flèches (navigation spatiale).
+
+**Version 0.1.0** : première release, fusionnée dans `master` avec le tag `v0.1.0` (voir [CHANGELOG.md](CHANGELOG.md)). Les tests manuels ([docs/tests-manuels.md](docs/tests-manuels.md)) restent à passer en entier avant la version 1.0.0.
 
 Écarts et points ouverts :
 
 - **Glisser une URL depuis le navigateur** : non vérifié (le glisser-déposer de Tauri ne fournit que des chemins de fichiers). Ctrl+V en mode édition couvre le besoin.
 - **Raccourci par défaut `Ctrl+Alt+Espace`** : déjà pris par une autre application sur le poste de développement. UniLaunch affiche alors un avertissement ; le raccourci se change dans les paramètres.
 - **Extraction des icônes** : faite sur un seul fil dédié (STA). En parallèle sur les fils partagés, certaines extractions échouaient au hasard.
-- **Version** : `0.1.0` dans `tauri.conf.json` et `Cargo.toml`, à passer à `1.0.0` une fois les tests manuels validés.
+- **Version** : `0.1.0` dans `package.json`, `tauri.conf.json` et `Cargo.toml`, à passer à `1.0.0` une fois les tests manuels validés.
