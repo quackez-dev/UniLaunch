@@ -75,6 +75,26 @@ pub async fn launch_tile(
         .map_err(|e| LaunchError::Failed(e.to_string()))?
 }
 
+/// Ouvre l'Explorateur sur l'emplacement d'une tuile (élément sélectionné).
+#[tauri::command]
+pub async fn reveal_tile(
+    state: State<'_, AppState>,
+    section: SectionKind,
+    tile_id: String,
+) -> Result<(), LaunchError> {
+    let tile = {
+        let cfg = state.config.lock().expect("config lock");
+        cfg.sections
+            .find_tile(section, &tile_id)
+            .cloned()
+            .ok_or_else(|| LaunchError::NotFound(tile_id.clone()))?
+    };
+    let cmd = launcher::plan_reveal(section, &tile, launcher::disk_state)?;
+    tauri::async_runtime::spawn_blocking(move || launcher::execute(&cmd))
+        .await
+        .map_err(|e| LaunchError::Failed(e.to_string()))?
+}
+
 /// Icône d'une tuile (URL `data:`), ou `null` si l'interface la dessine elle-même.
 /// Reçoit la tuile entière pour servir aussi à l'aperçu du formulaire, avant l'enregistrement.
 #[tauri::command]
