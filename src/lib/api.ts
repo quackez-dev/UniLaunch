@@ -7,8 +7,23 @@ export function getConfig(): Promise<Config> {
   return invoke<Config>("get_config");
 }
 
-export function saveConfig(config: Config): Promise<void> {
-  return invoke("save_config", { config });
+/** Enregistre ; renvoie les avertissements (raccourci global indisponible…). */
+export function saveConfig(config: Config): Promise<string[]> {
+  return invoke<string[]>("save_config", { config });
+}
+
+/** Indique au backend si le mode édition est actif. */
+export function setEditingFlag(editing: boolean): Promise<void> {
+  return invoke("set_editing", { editing });
+}
+
+/** Cache ou réduit la fenêtre après un lancement, selon les réglages. */
+export function afterLaunch(): Promise<void> {
+  return invoke("after_launch");
+}
+
+export function hideWindow(): Promise<void> {
+  return invoke("hide_window");
 }
 
 /** Avertissement du démarrage (configuration corrompue…), remis une seule fois. */

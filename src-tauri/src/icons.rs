@@ -63,13 +63,15 @@ pub fn resolve(cache_dir: &Path, kind: SectionKind, tile: &Tile) -> Option<Strin
                 let target = tile.target.trim();
                 let stamp = modified_secs(Path::new(target)).to_string();
                 let key = cache_key(&["app", target, &stamp]);
-                cached(cache_dir, &key, || shell_icon(target, ICON_SIZE))
+                // Extraction locale et rapide : un échec n'est pas mémorisé, on réessaiera.
+                cached(cache_dir, &key, false, || shell_icon(target, ICON_SIZE))
             }
             SectionKind::Websites => {
                 let url = url::Url::parse(tile.target.trim()).ok()?;
                 let origin = url.origin().ascii_serialization();
                 let key = cache_key(&["web", &origin]);
-                cached(cache_dir, &key, || crate::favicon::fetch(&origin))
+                // Requête réseau : un échec est mémorisé pour ne pas réessayer à chaque affichage.
+                cached(cache_dir, &key, true, || crate::favicon::fetch(&origin))
             }
         },
     }
@@ -97,7 +99,12 @@ fn modified_secs(path: &Path) -> u64 {
         .map_or(0, |d| d.as_secs())
 }
 
-fn cached(dir: &Path, key: &str, produce: impl FnOnce() -> Option<DynamicImage>) -> Option<String> {
+fn cached(
+    dir: &Path,
+    key: &str,
+    remember_failure: bool,
+    produce: impl FnOnce() -> Option<DynamicImage>,
+) -> Option<String> {
     let png_path = dir.join(format!("{key}.png"));
     let none_path = dir.join(format!("{key}.none"));
 
@@ -121,7 +128,9 @@ fn cached(dir: &Path, key: &str, produce: impl FnOnce() -> Option<DynamicImage>)
             Some(data_url("image/png", &bytes))
         }
         None => {
-            let _ = fs::write(&none_path, b"");
+            if remember_failure {
+                let _ = fs::write(&none_path, b"");
+            }
             None
         }
     }
@@ -154,15 +163,50 @@ pub fn import_custom(custom_dir: &Path, source: &Path) -> Result<PathBuf, String
     Ok(dest)
 }
 
+type ShellJob = (String, u32, std::sync::mpsc::Sender<Option<DynamicImage>>);
+
 /// Icône Windows d'un fichier, d'un raccourci ou d'une app du Store (`shell:AppsFolder\…`).
+///
+/// Les extractions passent toutes par un seul fil dédié, initialisé une fois en STA :
+/// les objets du shell n'aiment pas être appelés depuis des fils d'un mode COM inconnu
+/// (fils partagés du runtime), ce qui faisait échouer certaines extractions au hasard.
 #[cfg(windows)]
 pub fn shell_icon(target: &str, size: u32) -> Option<DynamicImage> {
+    use std::sync::OnceLock;
+    use std::sync::mpsc::{Sender, channel};
+
+    static WORKER: OnceLock<Option<Sender<ShellJob>>> = OnceLock::new();
+    let worker = WORKER.get_or_init(|| {
+        let (tx, rx) = channel::<ShellJob>();
+        std::thread::Builder::new()
+            .name("unilaunch-shell-icons".into())
+            .spawn(move || {
+                use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx};
+                // SAFETY : initialisation COM du fil dédié, une seule fois.
+                let _ = unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED) };
+                for (target, size, reply) in rx {
+                    let _ = reply.send(shell_icon_on_this_thread(&target, size));
+                }
+            })
+            .ok()
+            .map(|_| tx)
+    });
+
+    let (reply_tx, reply_rx) = channel();
+    worker
+        .as_ref()?
+        .send((target.to_string(), size, reply_tx))
+        .ok()?;
+    reply_rx.recv().ok().flatten()
+}
+
+#[cfg(windows)]
+fn shell_icon_on_this_thread(target: &str, size: u32) -> Option<DynamicImage> {
     use windows::Win32::Foundation::SIZE;
     use windows::Win32::Graphics::Gdi::{
         BI_RGB, BITMAP, BITMAPINFO, BITMAPINFOHEADER, CreateCompatibleDC, DIB_RGB_COLORS, DeleteDC,
         DeleteObject, GetDIBits, GetObjectW, HGDIOBJ,
     };
-    use windows::Win32::System::Com::{COINIT_APARTMENTTHREADED, CoInitializeEx};
     use windows::Win32::UI::Shell::{
         IShellItemImageFactory, SHCreateItemFromParsingName, SIIGBF_BIGGERSIZEOK, SIIGBF_ICONONLY,
     };
@@ -172,10 +216,9 @@ pub fn shell_icon(target: &str, size: u32) -> Option<DynamicImage> {
         return None;
     }
 
-    // SAFETY : appels COM/GDI classiques ; chaque objet créé est libéré avant de sortir,
-    // et le tampon passé à GetDIBits a exactement la taille demandée (largeur × hauteur × 4).
+    // SAFETY : appels COM/GDI classiques sur le fil STA dédié ; chaque objet créé est libéré
+    // avant de sortir, et le tampon de GetDIBits a exactement la taille demandée (l × h × 4).
     unsafe {
-        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         let factory: IShellItemImageFactory =
             SHCreateItemFromParsingName(&HSTRING::from(target), None).ok()?;
         let side = size as i32;
@@ -309,18 +352,54 @@ mod tests {
     fn cache_reuses_png_and_remembers_failures() {
         let dir = tempfile::tempdir().unwrap();
         let mut calls = 0;
-        let first = cached(dir.path(), "k", || {
+        let first = cached(dir.path(), "k", true, || {
             calls += 1;
             Some(DynamicImage::new_rgba8(8, 8))
         });
         assert!(first.unwrap().starts_with("data:image/png;base64,"));
-        let second = cached(dir.path(), "k", || panic!("ne doit pas être rappelé"));
+        let second = cached(dir.path(), "k", true, || panic!("ne doit pas être rappelé"));
         assert!(second.is_some());
         assert_eq!(calls, 1);
 
-        assert!(cached(dir.path(), "missing", || None).is_none());
+        assert!(cached(dir.path(), "missing", true, || None).is_none());
         assert!(dir.path().join("missing.none").exists());
-        assert!(cached(dir.path(), "missing", || panic!("échec mémorisé")).is_none());
+        assert!(cached(dir.path(), "missing", true, || panic!("échec mémorisé")).is_none());
+    }
+
+    #[test]
+    fn local_failures_are_not_remembered() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(cached(dir.path(), "app", false, || None).is_none());
+        assert!(!dir.path().join("app.none").exists());
+        assert!(
+            cached(dir.path(), "app", false, || Some(DynamicImage::new_rgba8(
+                4, 4
+            )))
+            .is_some()
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn concurrent_extractions_all_succeed() {
+        let targets = [
+            r"C:\Windows\System32\notepad.exe",
+            r"C:\Windows\regedit.exe",
+            r"C:\Windows\explorer.exe",
+            r"C:\Windows\System32\cmd.exe",
+        ];
+        let handles: Vec<_> = (0..16)
+            .map(|i| {
+                let t = targets[i % targets.len()];
+                std::thread::spawn(move || (t, shell_icon(t, 64).is_some()))
+            })
+            .collect();
+        for h in handles {
+            let (t, ok) = h.join().unwrap();
+            if Path::new(t).exists() {
+                assert!(ok, "extraction échouée : {t}");
+            }
+        }
     }
 
     #[test]

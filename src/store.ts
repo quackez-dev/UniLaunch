@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
-import { getConfig, launchTile, saveConfig, takeStartupWarning } from "./lib/api";
+import { afterLaunch, getConfig, launchTile, saveConfig, setEditingFlag, takeStartupWarning } from "./lib/api";
 import { translate, type Language, type MessageKey, type Params } from "./i18n";
 import type { Config, LaunchError, SectionKind, Tile } from "./lib/types";
 
@@ -74,13 +74,17 @@ export const useStore = create<State>((set, get) => ({
       const latest = get().config;
       if (!latest) return;
       saveConfig(latest)
-        .then(() => get().refreshMissing())
+        .then((warnings) => {
+          if (warnings.length > 0) get().showToast(warnings.join(" · "), { tone: "error" });
+          return get().refreshMissing();
+        })
         .catch((error) => get().showToast(t("toast.saveFailed", { error: String(error) }), { tone: "error" }));
     }, SAVE_DELAY);
   },
 
   setEditing(editing) {
     set({ editing, menu: null });
+    void setEditingFlag(editing).catch(() => {});
   },
 
   showToast(text, options = {}) {
@@ -112,6 +116,7 @@ export const useStore = create<State>((set, get) => ({
     try {
       await launchTile(section, tile.id, asAdmin);
       get().showToast(t(key, { name: tile.name }));
+      void afterLaunch().catch(() => {});
     } catch (error) {
       get().showToast(launchErrorText(error), { tone: "error" });
       if ((error as LaunchError)?.kind === "notFound") void get().refreshMissing();

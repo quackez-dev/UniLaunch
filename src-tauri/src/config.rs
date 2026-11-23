@@ -230,7 +230,9 @@ fn with_suffix(path: &Path, suffix: &str) -> PathBuf {
 }
 
 /// Lit et migre une configuration depuis du JSON.
+/// Un BOM UTF-8 en tête (ajouté par certains éditeurs Windows) est accepté.
 pub fn parse(text: &str) -> Result<Config, ConfigError> {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let value: Value = serde_json::from_str(text)?;
     let value = migrate(value)?;
     Ok(serde_json::from_value(value)?)
@@ -352,6 +354,12 @@ mod tests {
         assert_eq!(c.settings.accent_color, "#6D4AFF");
         assert_eq!(c.schema_version, SCHEMA_VERSION);
         assert!(c.sections.websites.groups.is_empty());
+    }
+
+    #[test]
+    fn utf8_bom_is_accepted() {
+        let c = parse("\u{feff}{ \"settings\": { \"tileSize\": \"S\" } }").unwrap();
+        assert_eq!(c.settings.tile_size, TileSize::S);
     }
 
     #[test]
