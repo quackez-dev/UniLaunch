@@ -75,7 +75,7 @@ pub fn parse_icon_links(html: &str, base: &Url) -> Vec<Candidate> {
         }
         out.push(Candidate { url, score });
     }
-    out.sort_by(|a, b| b.score.cmp(&a.score));
+    out.sort_by_key(|c| std::cmp::Reverse(c.score));
     out.dedup_by(|a, b| a.url == b.url);
     out
 }

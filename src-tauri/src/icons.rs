@@ -284,8 +284,8 @@ pub fn shell_icon(_target: &str, _size: u32) -> Option<DynamicImage> {
 /// Convertit des pixels BGRA à alpha prémultiplié (format GDI) en RGBA classique.
 /// Une image sans aucune transparence (alpha toujours 0) est considérée opaque.
 pub fn bgra_premultiplied_to_rgba(buf: &mut [u8]) {
-    let has_alpha = buf.chunks_exact(4).any(|p| p[3] != 0);
-    for p in buf.chunks_exact_mut(4) {
+    let has_alpha = buf.as_chunks::<4>().0.iter().any(|p| p[3] != 0);
+    for p in buf.as_chunks_mut::<4>().0 {
         p.swap(0, 2);
         if !has_alpha {
             p[3] = 255;
