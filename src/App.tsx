@@ -1,16 +1,19 @@
 import { useEffect } from "react";
 import { AppsPicker } from "./components/AppsPicker";
 import { Columns } from "./components/Columns";
-import { useExternalAdd } from "./lib/useExternalAdd";
+import { ContextMenu } from "./components/ContextMenu";
 import { DragGhost } from "./components/DragGhost";
 import { EditToggle } from "./components/EditToggle";
-import { TileDialog } from "./components/TileDialog";
-import { useEditStore } from "./editing";
-import { ContextMenu } from "./components/ContextMenu";
+import { SearchBox } from "./components/SearchBox";
 import { StatusBar } from "./components/StatusBar";
+import { TileDialog } from "./components/TileDialog";
 import { TitleBar } from "./components/TitleBar";
 import { ToastView } from "./components/ToastView";
+import { useEditStore } from "./editing";
 import { accentVars } from "./lib/accent";
+import { hideWindow } from "./lib/api";
+import { useExternalAdd } from "./lib/useExternalAdd";
+import { useSearch, useSearchResults } from "./search";
 import { useStore, useT } from "./store";
 import "./App.css";
 
@@ -23,9 +26,11 @@ function App() {
   const editing = useStore((s) => s.editing);
   const dialog = useEditStore((s) => s.dialog);
   const picker = useEditStore((s) => s.picker);
+  const drag = useEditStore((s) => s.drag);
+  const query = useSearch((s) => s.query);
+  const results = useSearchResults();
 
   useExternalAdd();
-  const drag = useEditStore((s) => s.drag);
 
   useEffect(() => {
     void init();
@@ -52,11 +57,40 @@ function App() {
     return () => document.removeEventListener("contextmenu", block);
   }, []);
 
+  // Échap, quand rien d'autre ne l'a pris (menu, dialogue, recherche) : cache la fenêtre
+  // en mode barre système.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      const edit = useEditStore.getState();
+      if (edit.dialog || edit.picker || edit.drag || edit.renaming || useStore.getState().menu) return;
+      if (useSearch.getState().query) {
+        useSearch.getState().clear();
+        return;
+      }
+      if (useStore.getState().config?.settings.windowMode === "tray") void hideWindow();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  let hint: string | undefined;
+  if (query.trim()) {
+    hint =
+      results.length === 0
+        ? t("status.searchNone")
+        : results.length === 1
+          ? t("status.searchOne")
+          : t("status.searchMany", { count: results.length });
+  } else if (editing) {
+    hint = t("status.editHint");
+  }
+
   return (
     <div className={`app${drag ? " app--dragging" : ""}`}>
-      <TitleBar actions={<EditToggle />} />
+      <TitleBar center={config ? <SearchBox /> : undefined} actions={<EditToggle />} />
       {config ? <Columns /> : <main className="app__loading">{t("status.loading")}</main>}
-      <StatusBar hint={editing ? t("status.editHint") : undefined} />
+      <StatusBar hint={hint} />
       <ContextMenu />
       {dialog && config && <TileDialog key={dialog.tile?.id ?? "new"} state={dialog} />}
       {picker && config && <AppsPicker />}

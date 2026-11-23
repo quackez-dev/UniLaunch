@@ -14,6 +14,8 @@ type Props = {
   metrics: TileMetrics;
   folder: { front: string; back: string };
   missing: boolean;
+  /** Résultat de recherche retenu : mis en évidence, lancé par Entrée. */
+  selected?: boolean;
 };
 
 /** Groupe et position d'insertion sous le pointeur, pour une tuile glissée. */
@@ -30,7 +32,7 @@ function tileTargetAt(section: SectionKind, tileId: string, x: number, y: number
 }
 
 /** Une tuile : un clic lance l'élément (ou l'ouvre en modification), un clic droit ouvre le menu. */
-export function TileButton({ section, tile, metrics, folder, missing }: Props) {
+export function TileButton({ section, tile, metrics, folder, missing, selected = false }: Props) {
   const t = useT();
   const launch = useStore((s) => s.launch);
   const openMenu = useStore((s) => s.openMenu);
@@ -81,6 +83,7 @@ export function TileButton({ section, tile, metrics, folder, missing }: Props) {
     menuOpen && "tile--menu",
     editing && "tile--editing",
     dragging && "tile--dragging",
+    selected && "tile--selected",
   ]
     .filter(Boolean)
     .join(" ");
@@ -102,7 +105,12 @@ export function TileButton({ section, tile, metrics, folder, missing }: Props) {
           {tile.name}
         </span>
       </button>
-      {missing && !editing && (
+      {selected && !editing && (
+        <span className="tile__enter" aria-hidden="true">
+          ↵
+        </span>
+      )}
+      {missing && !editing && !selected && (
         <svg className="tile__badge" role="img" aria-label={t("tile.missing")} width="16" height="16" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="11" fill="#3B2C0E" stroke="var(--ul-warning)" strokeWidth="1.4" />
           <path d="M12 7v6.5M12 16.8v.2" stroke="var(--ul-warning)" strokeWidth="2.6" strokeLinecap="round" fill="none" />

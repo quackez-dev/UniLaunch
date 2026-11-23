@@ -138,4 +138,12 @@ export const en: Record<MessageKey, string> = {
   "toast.editToAdd": "Switch to edit mode to add tiles",
   "toast.unsupported": "Unsupported type: {name}",
   "toast.duplicate": "“{name}” is already in UniLaunch",
+
+  "search.label": "Search",
+  "search.placeholder": "Type to search…",
+  "search.clear": "Clear search",
+  "search.noResult": "No results",
+  "status.searchNone": "No results · Esc clears",
+  "status.searchOne": "1 result · Enter to launch · Esc clears",
+  "status.searchMany": "{count} results · ↑ ↓ to choose · Enter launches · Esc clears",
 };

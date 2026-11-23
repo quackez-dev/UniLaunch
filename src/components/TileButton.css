@@ -100,3 +100,27 @@
   background: #c42b1c;
   color: #ffffff;
 }
+
+/* --- Recherche --- */
+
+.tile--selected,
+.tile--selected:hover {
+  border-color: var(--ul-accent);
+  box-shadow: 0 0 0 3px var(--ul-accent-soft);
+}
+
+.tile__enter {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  background: var(--ul-accent);
+  color: var(--ul-on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
+}
