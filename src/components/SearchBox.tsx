@@ -1,7 +1,32 @@
 import { useEffect, useRef, type KeyboardEvent } from "react";
+import { boxOf } from "../lib/dragTarget";
+import type { SearchResult } from "../lib/search";
+import { navigate, type Direction, type NavItem } from "../lib/spatialNav";
 import { useSearch, useSearchResults } from "../search";
 import { useStore, useT } from "../store";
 import "./SearchBox.css";
+
+const ARROWS: Record<string, Direction | undefined> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
+};
+
+/** Résultat atteint avec une flèche, d'après la position des tuiles affichées. */
+function navigateResults(results: SearchResult[], selected: number, dir: Direction): number {
+  const items: NavItem[] = [];
+  const indexes: number[] = [];
+  results.forEach((r, i) => {
+    const el = document.querySelector(`[data-section="${r.section}"] [data-tile-id="${CSS.escape(r.tile.id)}"]`);
+    if (!el) return;
+    items.push({ column: r.section, box: boxOf(el) });
+    indexes.push(i);
+  });
+  const from = indexes.indexOf(selected);
+  if (from < 0) return items.length > 0 ? indexes[0] : selected;
+  return indexes[navigate(items, from, dir)];
+}
 
 /** Champ de recherche de la barre de titre. Taper n'importe où dans la fenêtre y écrit. */
 export function SearchBox() {
@@ -9,7 +34,7 @@ export function SearchBox() {
   const query = useSearch((s) => s.query);
   const setQuery = useSearch((s) => s.setQuery);
   const clear = useSearch((s) => s.clear);
-  const move = useSearch((s) => s.move);
+  const select = useSearch((s) => s.select);
   const results = useSearchResults();
   const launch = useStore((s) => s.launch);
   const editing = useStore((s) => s.editing);
@@ -28,12 +53,12 @@ export function SearchBox() {
   }, []);
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
+    const dir = ARROWS[e.key];
+    if (dir) {
+      // Sans résultat, les flèches gardent leur rôle habituel dans le champ (déplacer le curseur).
+      if (results.length === 0) return;
       e.preventDefault();
-      move(1, results.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      move(-1, results.length);
+      select(navigateResults(results, useSearch.getState().selected, dir));
     } else if (e.key === "Enter") {
       e.preventDefault();
       const pick = results[useSearch.getState().selected];

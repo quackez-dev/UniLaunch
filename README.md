@@ -3,7 +3,7 @@
 Lanceur pour Windows 11 : les applications, les dossiers et les sites web utilisés souvent, réunis dans une seule fenêtre. Un clic sur une tuile lance l'application, ouvre le dossier dans l'Explorateur ou ouvre le site dans le navigateur par défaut.
 
 - **Trois colonnes** côte à côte (Applications, Dossiers, Sites web), chacune avec ses groupes repliables. Les colonnes se redimensionnent en glissant leurs séparateurs.
-- **Une fenêtre compacte**, environ la moitié de l'écran, toujours centrée.
+- **Une fenêtre compacte**, environ la moitié de l'écran, toujours centrée sur l'écran principal.
 - **Rien ne bouge par accident** : on n'ajoute, ne modifie, ne déplace et ne supprime des tuiles qu'en **mode édition**.
 - **Recherche rapide** : tapez n'importe où, Entrée lance le premier résultat.
 - **Barre système et raccourci global** pour afficher ou cacher UniLaunch de partout.
@@ -12,7 +12,7 @@ Lanceur pour Windows 11 : les applications, les dossiers et les sites web utilis
 
 | Action | Comment |
 |---|---|
-| Lancer une tuile | Clic, ou taper son nom puis Entrée |
+| Lancer une tuile | Clic, ou taper son nom, choisir avec les flèches puis Entrée |
 | Plus d'options | Clic droit sur une tuile : administrateur, emplacement, copier le chemin… |
 | Afficher / cacher | Raccourci global (réglable dans les paramètres), clic sur l'icône de la zone de notification, Échap pour cacher |
 | Ajouter des tuiles | **Modifier**, puis : **Ajouter** dans une colonne, **+** dans un groupe, **Installées** (apps du menu Démarrer et du Store), glisser des fichiers ou dossiers depuis l'Explorateur, ou coller une URL (Ctrl+V) |

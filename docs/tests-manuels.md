@@ -9,7 +9,7 @@ Conseil : faire d'abord un tour avec une configuration jetable (`UNILAUNCH_DATA_
 - [ ] L'installateur NSIS installe et désinstalle proprement ; idem pour le MSI.
 - [ ] Premier lancement : la fenêtre fait environ la moitié de l'écran, centrée, avec des groupes de départ vides.
 - [ ] Relancer UniLaunch alors qu'il tourne : la fenêtre existante revient (pas de seconde instance).
-- [ ] Sur un deuxième écran : le raccourci affiche la fenêtre sur l'écran où se trouve la souris.
+- [ ] Sur un deuxième écran : avec la souris et le focus sur l'autre écran, le raccourci (et le clic sur l'icône de notification) affiche la fenêtre centrée sur l'écran principal, celui du menu Démarrer.
 
 ## Lancement
 
@@ -47,7 +47,7 @@ Conseil : faire d'abord un tour avec une configuration jetable (`UNILAUNCH_DATA_
 ## Recherche et clavier
 
 - [ ] Taper n'importe où remplit la recherche ; les trois colonnes se filtrent.
-- [ ] Le meilleur résultat est mis en évidence ; ↑ ↓ changent la sélection ; Entrée lance ; Échap efface.
+- [ ] Le meilleur résultat est mis en évidence ; ← → passent à la tuile voisine puis à la colonne d'à côté ; ↑ ↓ changent de ligne dans la colonne ; la tuile choisie reste visible ; Entrée lance ; Échap efface.
 - [ ] Ctrl+F donne le focus à la recherche ; F5, Ctrl+R, Ctrl+P ne font rien.
 
 ## Paramètres et données
