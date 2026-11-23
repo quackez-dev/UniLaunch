@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useT } from "../store";
 import { Logo } from "./Logo";
 import "./TitleBar.css";
 
 /** Barre de titre personnalisée (la fenêtre n'a pas de cadre Windows). */
-export function TitleBar() {
+export function TitleBar({ center, actions }: { center?: ReactNode; actions?: ReactNode }) {
+  const t = useT();
   const appWindow = getCurrentWindow();
 
   return (
@@ -11,15 +14,19 @@ export function TitleBar() {
       <div className="titlebar__brand" data-tauri-drag-region>
         <Logo />
         <span className="titlebar__name" data-tauri-drag-region>
-          UniLaunch
+          {t("app.name")}
         </span>
       </div>
-      <div className="titlebar__center" data-tauri-drag-region />
+      <div className="titlebar__center" data-tauri-drag-region>
+        {center}
+      </div>
       <div className="titlebar__actions">
+        {actions}
+        {actions && <span className="titlebar__sep" aria-hidden="true" />}
         <button
           type="button"
           className="titlebar__winbtn"
-          aria-label="Réduire"
+          aria-label={t("window.minimize")}
           onClick={() => void appWindow.minimize()}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
@@ -29,7 +36,7 @@ export function TitleBar() {
         <button
           type="button"
           className="titlebar__winbtn titlebar__winbtn--close"
-          aria-label="Fermer"
+          aria-label={t("window.close")}
           onClick={() => void appWindow.close()}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">

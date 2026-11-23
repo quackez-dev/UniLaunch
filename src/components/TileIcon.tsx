@@ -18,6 +18,15 @@ export function TileIcon({ section, tile, size, folder, missing }: Props) {
   const url = useTileIcon(section, tile);
   const round = section === "websites";
 
+  if (url && round && tile.icon.kind === "auto") {
+    // Favicon : pastille claire, pour que les logos sombres restent lisibles sur le thème sombre.
+    return (
+      <span className="tile-icon tile-icon--plate" style={{ width: size, height: size }}>
+        <img src={url} alt="" draggable={false} />
+      </span>
+    );
+  }
+
   if (url) {
     return (
       <img

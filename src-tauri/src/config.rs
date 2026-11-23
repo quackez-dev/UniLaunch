@@ -31,6 +31,31 @@ impl Default for Config {
     }
 }
 
+impl Config {
+    /// Configuration du premier lancement : des groupes vides, prêts à recevoir des tuiles.
+    pub fn starter() -> Self {
+        let group = |id: &str, name: &str| Group {
+            id: id.into(),
+            name: name.into(),
+            ..Group::default()
+        };
+        let mut c = Self::default();
+        c.sections.apps.groups = vec![
+            group("apps-pro", "Professionnel"),
+            group("apps-perso", "Personnel"),
+        ];
+        c.sections.folders.groups = vec![
+            group("folders-projects", "Projets"),
+            group("folders-other", "Autres"),
+        ];
+        c.sections.websites.groups = vec![
+            group("web-work", "Travail"),
+            group("web-perso", "Personnel"),
+        ];
+        c
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
@@ -233,7 +258,7 @@ pub fn migrate(mut value: Value) -> Result<Value, ConfigError> {
 pub fn load(path: &Path) -> Loaded {
     match fs::read_to_string(path) {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Loaded {
-            config: Config::default(),
+            config: Config::starter(),
             warning: None,
         },
         Err(e) => Loaded {
@@ -348,11 +373,20 @@ mod tests {
     }
 
     #[test]
-    fn load_missing_file_gives_default_without_warning() {
+    fn first_run_gives_starter_groups_without_warning() {
         let dir = tempfile::tempdir().unwrap();
         let loaded = load(&dir.path().join("config.json"));
-        assert_eq!(loaded.config, Config::default());
+        assert_eq!(loaded.config, Config::starter());
         assert!(loaded.warning.is_none());
+        for kind in [
+            SectionKind::Apps,
+            SectionKind::Folders,
+            SectionKind::Websites,
+        ] {
+            let groups = &loaded.config.sections.get(kind).groups;
+            assert!(!groups.is_empty());
+            assert!(groups.iter().all(|g| g.tiles.is_empty()));
+        }
     }
 
     #[test]

@@ -133,6 +133,30 @@ pub fn plan(
     }
 }
 
+/// Ouvre l'Explorateur sur l'emplacement de la tuile, avec l'élément sélectionné.
+/// Pas de sens pour un site web ni pour une app du Store.
+pub fn plan_reveal(
+    kind: SectionKind,
+    tile: &Tile,
+    state: impl Fn(&Path) -> PathState,
+) -> Result<ShellCommand, LaunchError> {
+    let target = tile.target.trim();
+    if kind == SectionKind::Websites || is_shell_target(target) {
+        return Err(LaunchError::Failed(
+            "aucun emplacement sur le disque".into(),
+        ));
+    }
+    if state(Path::new(target)) == PathState::Missing {
+        return Err(LaunchError::NotFound(target.into()));
+    }
+    Ok(ShellCommand {
+        verb: "open",
+        file: "explorer.exe".into(),
+        params: format!("/select,\"{target}\""),
+        dir: None,
+    })
+}
+
 /// Exécute la commande avec `ShellExecuteExW`.
 #[cfg(windows)]
 pub fn execute(cmd: &ShellCommand) -> Result<(), LaunchError> {
@@ -311,6 +335,20 @@ mod tests {
             plan(SectionKind::Apps, &tile("   "), false, files),
             Err(LaunchError::EmptyTarget)
         );
+    }
+
+    #[test]
+    fn reveal_selects_the_item_in_explorer() {
+        let cmd = plan_reveal(SectionKind::Apps, &tile(r"C:\Apps\tool.exe"), files).unwrap();
+        assert_eq!(cmd.file, "explorer.exe");
+        assert_eq!(cmd.params, r#"/select,"C:\Apps\tool.exe""#);
+        assert!(plan_reveal(SectionKind::Folders, &tile(r"D:\P"), dirs).is_ok());
+        assert!(plan_reveal(SectionKind::Websites, &tile("https://x.org"), files).is_err());
+        assert!(plan_reveal(SectionKind::Apps, &tile(r"shell:AppsFolder\X!App"), files).is_err());
+        assert!(matches!(
+            plan_reveal(SectionKind::Folders, &tile(r"D:\P"), missing),
+            Err(LaunchError::NotFound(_))
+        ));
     }
 
     #[test]
